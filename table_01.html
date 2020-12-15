@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css"
+      rel="stylesheet"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui"
+    />
+  </head>
+
+  <body>
+    <div id="app">
+      <v-app>
+        <v-app-bar color="white" app>
+          <v-toolbar-title><a href="index.html" style="color: inherit; text-decoration: none;">depcha_analysis</a></v-toolbar-title>
+        </v-app-bar>
+
+        <v-main>
+          <v-container class="my-5">
+
+            <template v-if="loading">
+              <div class="text-center my-10">
+                <v-progress-circular
+                  indeterminate
+                  color="primary"
+                ></v-progress-circular>
+                </div>
+            </template>
+
+            <template v-else>
+            <v-card>
+              <v-card-title>
+                <v-spacer></v-spacer>
+                <v-text-field
+                  v-model="search"
+                  append-icon="mdi-magnify"
+                  label="Search"
+                  single-line
+                  hide-details
+                ></v-text-field>
+              </v-card-title>
+              <v-data-table
+                :headers="headers"
+                :items="items"
+                :items-per-page="10"
+                class="elevation-1"
+                :search="search"
+              >
+                <template v-slot:item.entry="{ item }">
+                  <a
+                    :href="`https://naoki-kokaze.github.io/depcha_analysis/snorql/?describe=${encodeURIComponent(item.entryUri)}`"
+                    >{{item.entry}}</a
+                  >
+                </template>
+              </v-data-table>
+            </v-card>
+          </template>
+          </v-container>
+        </v-main>
+        <v-footer color="primary">
+          <span class="white--text text-center">depcha_analysis</span>
+        </v-footer>
+      </v-app>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+    <script src="https://unpkg.com/vue-router@2.0.0/dist/vue-router.js"></script>
+    <script>
+      const router = new VueRouter({
+        mode: "history",
+      });
+
+      new Vue({
+        router,
+        el: "#app",
+        vuetify: new Vuetify(),
+        data() {
+          return {
+            search: "",
+            result: [],
+            headers: [
+              {
+                text: "ENTRY",
+                value: "entry",
+              },
+              {
+                text: "WHEN",
+                value: "when",
+              },
+              {
+                text: "FROM",
+                value: "from",
+              },
+              {
+                text: "TO",
+                value: "to",
+              },
+              {
+                text: "MEASURABLE",
+                value: "measurable",
+              },
+            ],
+            items: [],
+            loading : true,
+          };
+        },
+        async created() {
+          const manifest = this.$route.query.manifest;
+          this.manifest = manifest;
+
+          const query = `
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX gams: <https://gams.uni-graz.at/o:gams-ontology#>
+PREFIX gn: <http://www.geonames.org/ontology#>
+PREFIX functx: <http://www.functx.com>
+PREFIX bk: <https://gams.uni-graz.at/o:depcha.bookkeeping#>
+PREFIX t: <http://www.tei-c.org/ns/1.0>
+        
+SELECT DISTINCT ?ENTRY ?ENTRY_URI ?WHEN ?FROM ?TO ?MEASURABLE 
+FROM <http://example.org/ward_ledger.1>
+WHERE {
+	?ENTRY_URI bk:when ?WHEN; bk:entry ?ENTRY; bk:consistsOf ?transfer . 
+  ?transfer bk:from/bk:name ?FROM .
+  ?transfer bk:to/bk:name ?TO .
+  ?transfer bk:transfers/bk:commodity ?MEASURABLE  .
+}
+ORDER BY ?WHEN
+LIMIT 100
+        `;
+
+          const url =
+            "https://dydra.com/ut-digital-archives/kokaze/sparql?output=json&query=" +
+            encodeURIComponent(query);
+
+          const items = await axios.get(url).then(function (res) {
+            const arr = res.data;
+            const items = [];
+            for (const item of arr) {
+              items.push({
+                entry: item.ENTRY,
+                entryUri: item.ENTRY_URI,
+                when: item.WHEN,
+                from: item.FROM,
+                to: item.TO,
+                measurable: item.MEASURABLE,
+              });
+            }
+            return items;
+          });
+
+          this.items = items;
+          this.loading = false
+        },
+      });
+    </script>
+  </body>
+</html>
