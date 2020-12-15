@@ -169,5 +169,13 @@ Snorqldef.example = [
 		"label_en" : "Commodities",
 		"ns" : [ ],
 		"query" : "SELECT DISTINCT ?ENTRY ?WHEN ?FROM ?TO ?MEASURABLE \nFROM <http://example.org/ward_ledger.1>\nWHERE {\n	?s bk:when ?WHEN; bk:entry ?ENTRY; bk:consistsOf ?transfer . \n  ?transfer bk:from/bk:name ?FROM .\n  ?transfer bk:to/bk:name ?TO .\n  ?transfer bk:transfers/bk:commodity ?MEASURABLE  .\n}\nORDER BY ?WHEN\nLIMIT 100"
+	},
+	{
+		"label": "From A Noakes",
+		"label_en" : "From A Noakes",
+		"ns" : [ ],
+		"query" : "SELECT DISTINCT ?ENTRY ?ENTRY_URI ?WHEN ?FROM ?FROM_URI ?TO ?TO_URI ?MEASURABLE \nFROM <http://example.org/ward_ledger.1>\nWHERE {\n	?ENTRY_URI bk:when ?WHEN; bk:entry ?ENTRY; bk:consistsOf ?transfer . \n  ?transfer bk:from ?FROM_URI . filter (?FROM_URI = <https://gams.uni-graz.at/o:depcha.ward_ledger.1#ANoakes>)  . ?FROM_URI bk:name ?FROM .\n  ?transfer bk:to ?TO_URI . ?TO_URI bk:name ?TO .\n  ?transfer bk:transfers/bk:commodity ?MEASURABLE  .\n}\nORDER BY ?WHEN\nLIMIT 100"
 	}
+
+	
 ];
