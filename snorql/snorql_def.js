@@ -4,7 +4,7 @@ var Snorqldef = {
 	//overrides Snorql class variables
 	vars: {
 		//_endpoint: "/works/ld/jpsearch/ep",
-		_endpoint: "https://dydra.com/ut-digital-archives/kokaze/sparql",
+		_endpoint: "https://dydra.com/naoki_cocaze/depcha-analysis/sparql",
 		_poweredByLink: "https://github.com/naoki-kokaze/depcha_analysis",
 		_poweredByLabel: "depcha_analysis",
 		default_query: "SELECT DISTINCT * WHERE {\n\t?s ?v ?o . \n}\nORDER BY ?s\nLIMIT 100",
